@@ -240,16 +240,9 @@ namespace Bank_FD_management
         private void btnsave_Click(object sender, EventArgs e)
         {
             setConnection();
-            OleDbCommand cmd = new OleDbCommand("insert into customer_master (C_ID, C_name, address, city, state, district, pin_code, phone, e_mail, DOB, PAN, Add_date) values ('" + txtname.Text + "', '" + txtaddress.Text + "', '" + cmbcity.SelectedText + "', '" + cmbstate.SelectedText + "', '" + cmbdistrict.SelectedText + "', " + txtpincode.Text + ", " + txtphone.Text + ", '" + txtemail.Text + "', #" + dtpcustbirth.Text + "#, '" + txtpan.Text + "', #" + DateTime.Now + "#", conn);
+            OleDbCommand cmd = new OleDbCommand("insert into customer_master (C_name, address, city, state, district, pin_code, phone, e_mail, DOB, PAN) values ('" + txtname.Text + "', '" + txtaddress.Text + "', '" + cmbcity.SelectedText + "', '" + cmbstate.SelectedText + "', '" + cmbdistrict.SelectedText + "', " + txtpincode.Text + ", " + txtphone.Text + ", '" + txtemail.Text + "', #" + dtpcustbirth.Value + "#, '" + txtpan.Text + "')", conn);
             cmd.ExecuteNonQuery();
             MessageBox.Show("pnl1 data inserted");
-            
-            if(chbisnomminor.Checked)
-            {
-                OleDbCommand pushMinor = new OleDbCommand("insert into customer_master (is_minor_cust, g_name, g_addr, g_relation, g_phone) values ('" + chbminor.Checked + "', '" + txtgname.Text + "', '" + txtgaddress.Text + "', '" + txtgrelation.Text + "', " + txtgphone.Text + "') ", conn);
-                pushMinor.ExecuteNonQuery();
-                MessageBox.Show("Minor data is stored");
-            }
 
             conn.Close();
         }

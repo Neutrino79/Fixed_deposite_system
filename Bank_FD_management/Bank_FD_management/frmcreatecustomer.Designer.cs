@@ -83,6 +83,7 @@
             this.btnfetchid = new System.Windows.Forms.Button();
             this.txtID = new System.Windows.Forms.TextBox();
             this.lblID = new System.Windows.Forms.Label();
+            this.maskedTextBox1 = new System.Windows.Forms.MaskedTextBox();
             this.pnltitle.SuspendLayout();
             this.pnldetails.SuspendLayout();
             this.pnlminor.SuspendLayout();
@@ -105,7 +106,7 @@
             // 
             this.lbltitle.AutoSize = true;
             this.lbltitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lbltitle.Location = new System.Drawing.Point(414, 9);
+            this.lbltitle.Location = new System.Drawing.Point(414, 7);
             this.lbltitle.Name = "lbltitle";
             this.lbltitle.Size = new System.Drawing.Size(301, 42);
             this.lbltitle.TabIndex = 0;
@@ -116,6 +117,7 @@
             this.pnldetails.AutoSize = true;
             this.pnldetails.BackColor = System.Drawing.Color.LightGray;
             this.pnldetails.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.pnldetails.Controls.Add(this.maskedTextBox1);
             this.pnldetails.Controls.Add(this.txtpan);
             this.pnldetails.Controls.Add(this.lblpan);
             this.pnldetails.Controls.Add(this.dtpcustbirth);
@@ -204,6 +206,7 @@
             this.txtphone.BackColor = System.Drawing.Color.WhiteSmoke;
             this.txtphone.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtphone.Location = new System.Drawing.Point(124, 159);
+            this.txtphone.MaxLength = 10;
             this.txtphone.Name = "txtphone";
             this.txtphone.Size = new System.Drawing.Size(232, 29);
             this.txtphone.TabIndex = 8;
@@ -674,7 +677,7 @@
             this.chbNewData.Checked = true;
             this.chbNewData.CheckState = System.Windows.Forms.CheckState.Indeterminate;
             this.chbNewData.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.chbNewData.Location = new System.Drawing.Point(1045, 8);
+            this.chbNewData.Location = new System.Drawing.Point(1032, 8);
             this.chbNewData.Name = "chbNewData";
             this.chbNewData.Size = new System.Drawing.Size(68, 28);
             this.chbNewData.TabIndex = 23;
@@ -710,6 +713,13 @@
             this.lblID.Size = new System.Drawing.Size(79, 24);
             this.lblID.TabIndex = 2;
             this.lblID.Text = "Cust ID :";
+            // 
+            // maskedTextBox1
+            // 
+            this.maskedTextBox1.Location = new System.Drawing.Point(441, 131);
+            this.maskedTextBox1.Name = "maskedTextBox1";
+            this.maskedTextBox1.Size = new System.Drawing.Size(203, 20);
+            this.maskedTextBox1.TabIndex = 21;
             // 
             // frmcreatecustomer
             // 
@@ -800,6 +810,7 @@
         private System.Windows.Forms.TextBox txtID;
         private System.Windows.Forms.Label lblID;
         private System.Windows.Forms.CheckBox chbNewData;
+        private System.Windows.Forms.MaskedTextBox maskedTextBox1;
     }
 }
 
