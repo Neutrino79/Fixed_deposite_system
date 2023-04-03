@@ -195,6 +195,61 @@ namespace Bank_FD_management
         private void rbdPayInterest_CheckedChanged(object sender, EventArgs e)
         {
             btnBreak.Text = "Pay Interest";
+
+            // fetch data from db
+            setConnection();
+            OleDbCommand cmd = new OleDbCommand("select * from fd_transection where cert_id = " + txtCertID.Text, conn);
+            OleDbDataReader dr = cmd.ExecuteReader();
+
+            // calculations for paying interest.....
+            var curr = DateTime.Now.Date;
+            var startDate = dtpStartDate.Value.Date;
+            var endDate = dtpMatureDate.Value.Date;
+            var span = dtpMatureDate.Value.Date - dtpStartDate.Value.Date;
+            DateTime paidDate = new DateTime(2002, 10, 14); // init to a specific date for sdefault value
+            int paidIntr = 0, alreadyPaidAmt = 0;
+
+            if(dr.HasRows)
+            {
+                while(dr.Read())
+                {
+                    paidDate = DateTime.Parse(dr["paidDate"].ToString());
+                    paidIntr = int.Parse(dr["paid_intr"].ToString());
+                    alreadyPaidAmt = int.Parse(dr["payable_intr"].ToString());
+
+                    if(!string.IsNullOrEmpty(dr["paidDate"].ToString()))
+                    {
+                        startDate = DateTime.Parse(dr["paidDate"].ToString()).Date;
+                    }
+                }
+            }
+            dr.Close();
+ 
+            try
+            {
+                if(txtFDStatus.Text == "Open") // find from table or something, all the conditions 
+                {
+                    if(curr < startDate.AddMonths(1))
+                    {
+                        txtpayable_intr.Text = "0";
+                        txtPaid_intr.Text = "0";
+                        MessageBox.Show("nanter yee");
+                    }
+                    if(curr >= startDate.AddMonths(1))
+                    {
+                        var countMonth = (curr.Month - startDate.Month);
+                        var totalMonths = ((endDate.Year - startDate.Year) * 12) + endDate.Month - startDate.Month;
+                        
+                        var payableForMonth = (int.Parse(txtTotalInterest.Text) / totalMonths) - alreadyPaidAmt;
+                        txtpayable_intr.Text = (payableForMonth * countMonth).ToString();
+                        txtPaid_intr.Text = paidIntr.ToString();   
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void rbdBreakFD_CheckedChanged(object sender, EventArgs e)
@@ -205,18 +260,16 @@ namespace Bank_FD_management
         private void btnFetchDetails_Click(object sender, EventArgs e)
         {
            try
-            {
+           {
                 if (!string.IsNullOrEmpty(txtCertID.Text))
                 {
                     setConnection();
                     OleDbCommand cmd = new OleDbCommand("select * from FD_master where cert_id = " + txtCertID.Text, conn);
                     OleDbDataReader dr = cmd.ExecuteReader();
-                    OleDbCommand cmd1 = new OleDbCommand("select * from FD_transection where cert_id = " + txtCertID.Text, conn);
-                    OleDbDataReader dr1 = cmd1.ExecuteReader();
 
-                    if (dr.HasRows && dr1.HasRows)
+                    if (dr.HasRows)
                     {
-                        while (dr.Read() && dr1.Read())
+                        while (dr.Read())
                         {
                             txtName.Text = dr["C_name"].ToString();
                             txtFD_ID.Text = dr["FD_ID"].ToString();
@@ -235,41 +288,13 @@ namespace Bank_FD_management
                             txtelapsed_days.Text = (DateTime.Now.Subtract(dtpStartDate.Value).TotalDays).ToString("0");
                             txtinterestRate.Text = dr["intr_rate"].ToString();
                             txtTotalInterest.Text = dr["Total_intr"].ToString();
-
-                            txtPaid_intr.Text = dr1["paid_intr"].ToString();
-
-                            if(txtPeriod.Text == "Monthly" && dtpStartDate.Value < dtpMatureDate.Value)
-                            {
-                                DateTime d = DateTime.Parse(dtpStartDate.Value.AddMonths(1).ToString("yyyy-MM-dd"));
-                                int totalDays = int.Parse(dr["total_days"].ToString());
-                                int periodicInterest = int.Parse(dr["period_intr"].ToString());
-                                DateTime currDay = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd"));
-                                DateTime matureDate = DateTime.Parse(dtpMatureDate.Value.ToString("yyyy-MM-dd"));
-
-
-                                //chatgpt
-                                TimeSpan duration = TimeSpan.FromDays(totalDays); // convert to TimeSpan
-
-                                int months = (int)(duration.Days / 30.44); // calculate number of months
-                                int remainingDays = duration.Days % 30; // calculate remaining days
-
-
-                                if (currDay < d)
-                                {
-                                    txtpayable_intr.Text = "0";
-                                    break;
-                                }
-                                if(currDay >= matureDate)
-                                {
-                                    
-                                }
-                            }
                         }
                     }
 
                     else
                     {
                         MessageBox.Show("No data found for id " + txtCertID.Text);
+                        // add clear form method
                         txtCertID.Text = "";
                         txtName.Text = "";
                         txtCertID.Focus();
@@ -281,16 +306,47 @@ namespace Bank_FD_management
                     txtCertID.Focus();
                 }
 
-            }
-            catch (Exception ex)
-            {
-              MessageBox.Show(ex.Message);
-            }
+           }
+           catch (Exception ex)
+           {
+                MessageBox.Show(ex.Message);
+           }
         }
 
         private void pnlButtons_Paint(object sender, PaintEventArgs e)
         {
             
+        }
+
+        private void btnBreak_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (btnBreak.Text == "Pay Interest")
+                {
+                    if (!string.IsNullOrEmpty(txtpayable_intr.Text) && !string.IsNullOrEmpty(txtPaid_intr.Text))
+                    {
+                        if(DateTime.Now.Date <= dtpMatureDate.Value.Date)
+                        {
+                            OleDbCommand cmd = new OleDbCommand("update fd_transection set paid_intr = " + txtPaid_intr.Text + ", paidDate = #" + DateTime.Now.Date + "# where = cert_id = " + txtCertID.Text, conn);
+                            cmd.ExecuteNonQuery();
+                            MessageBox.Show("paise tyla dile. aata nanter yee");
+                        }
+                        else
+                        {
+                            MessageBox.Show("Zal ki aata! date sampali bal, aani kiti interest pahijet");
+                        }
+                    }
+                }
+                else
+                {
+                    // code for the break fd
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
     }
 }

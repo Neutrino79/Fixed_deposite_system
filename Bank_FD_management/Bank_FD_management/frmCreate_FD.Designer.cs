@@ -649,6 +649,7 @@
             // btnCancel
             // 
             this.btnCancel.BackColor = System.Drawing.Color.WhiteSmoke;
+            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCancel.Location = new System.Drawing.Point(382, 27);
             this.btnCancel.Name = "btnCancel";
@@ -673,7 +674,9 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1156, 860);
+            this.AutoScroll = true;
+            this.CancelButton = this.btnCancel;
+            this.ClientSize = new System.Drawing.Size(1156, 749);
             this.Controls.Add(this.pnlButtons);
             this.Controls.Add(this.pnlRates);
             this.Controls.Add(this.pnlDetails);

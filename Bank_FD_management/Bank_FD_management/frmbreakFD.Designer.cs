@@ -346,6 +346,7 @@
             this.btnBreak.TabIndex = 0;
             this.btnBreak.Text = "Break";
             this.btnBreak.UseVisualStyleBackColor = false;
+            this.btnBreak.Click += new System.EventHandler(this.btnBreak_Click);
             // 
             // btnCancel
             // 
