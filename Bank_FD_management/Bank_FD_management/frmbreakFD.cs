@@ -205,21 +205,13 @@ namespace Bank_FD_management
             var startDate = dtpStartDate.Value.Date;
             var endDate = dtpMatureDate.Value.Date;
             var span = dtpMatureDate.Value.Date - dtpStartDate.Value.Date;
-            DateTime paidDate = new DateTime(2002, 10, 14); // init to a specific date for sdefault value
-            int paidIntr = 0, alreadyPaidAmt = 0;
+            int paidIntr = 0;
 
             if(dr.HasRows)
             {
                 while(dr.Read())
                 {
-                    paidDate = DateTime.Parse(dr["paidDate"].ToString());
                     paidIntr = Convert.ToInt32(dr["paid_intr"].ToString());
-                    alreadyPaidAmt = Convert.ToInt32(dr["payable_intr"].ToString());
-
-                    if(!string.IsNullOrEmpty(dr["paidDate"].ToString()))
-                    {
-                        startDate = DateTime.Parse(dr["paidDate"].ToString()).Date;
-                    }
                 }
             }
             dr.Close();
@@ -228,46 +220,79 @@ namespace Bank_FD_management
             {
                 if(txtFDStatus.Text == "Open") // find from table or something, all the conditions (for monthly)
                 {
+                    OleDbCommand cmdFdType = new OleDbCommand("select Period_intr from fd_master where cert_id = " + txtCertID.Text, conn);
+                    string fdType = Convert.ToString(cmdFdType.ExecuteScalar());
+
                     OleDbCommand cmdLastPaidDate = new OleDbCommand("select paidDate from fd_transection where cert_id = " + txtCertID.Text, conn);
                     var lastPaidDate = DateTime.Parse(cmdLastPaidDate.ExecuteScalar().ToString()).Date;
 
-                    if (curr < startDate.AddMonths(1))
-                    {
-                        txtpayable_intr.Text = "0";
-                        txtPaid_intr.Text = "0";
-                        MessageBox.Show("nanter yee (1 month is not completed)");
-                    }
-                    if(curr >= startDate.AddMonths(1) && curr < endDate)
-                    {
-                        var countMonth = (curr.Month - startDate.Month);
-                        var totalMonths = ((endDate.Year - startDate.Year) * 12) + endDate.Month - startDate.Month;
-                        var payableForMonth = (int.Parse(txtTotalInterest.Text) / totalMonths) - alreadyPaidAmt;
+                    var countMonth = (curr.Month - startDate.Month);
+                    var totalMonths = ((endDate.Year - startDate.Year) * 12) + endDate.Month - startDate.Month;
+                    var payableForMonth = (int.Parse(txtTotalInterest.Text) / totalMonths);
 
-                        if(lastPaidDate == startDate)
+                    if (fdType == "Monthly")
+                    { 
+                        if (curr < startDate.AddMonths(1))
                         {
-                            txtpayable_intr.Text = (payableForMonth * countMonth).ToString();
-                            txtPaid_intr.Text = paidIntr.ToString();
+                            txtpayable_intr.Text = "0"; // fetch query 
+                            txtPaid_intr.Text = "0";
+                            MessageBox.Show("nanter yee (1 month is not completed)");
                         }
-                        if(curr > lastPaidDate && lastPaidDate > startDate)
+                        if(curr >= startDate.AddMonths(1) && curr <= endDate)
                         {
-                            var monthCount2 = curr.Month - startDate.Month;
-                            var monthCount1 = lastPaidDate.Month - startDate.Month;
-                            if((monthCount2 - monthCount1) > 0)
+                            if(startDate == lastPaidDate)
                             {
-                                txtpayable_intr.Text = ((monthCount2 - monthCount1) * payableForMonth).ToString();
+                                txtpayable_intr.Text = (payableForMonth * countMonth).ToString();
+                                txtPaid_intr.Text = paidIntr.ToString();
+                            }
+                            if(lastPaidDate > startDate && curr > lastPaidDate)
+                            {
+                                var monthCount2 = curr.Month - startDate.Month;
+                                var monthCount1 = lastPaidDate.Month - startDate.Month;
+                                if((monthCount2 - monthCount1) > 0 || curr >= endDate)
+                                {
+                                    txtpayable_intr.Text = ((monthCount2 - monthCount1) * payableForMonth).ToString();
 
-                                // to show updated paid Interest
-                                OleDbCommand cmdPaidInterest = new OleDbCommand("select paid_intr where cert_id = " + txtCertID.Text, conn);
-                                txtPaid_intr.Text = cmdPaidInterest.ExecuteNonQuery().ToString();
+                                    // to show updated paid Interest
+                                    OleDbCommand cmdPaidInterest = new OleDbCommand("select Paid_intr from fd_transection where cert_id = " + txtCertID.Text, conn);
+                                    txtPaid_intr.Text = cmdPaidInterest.ExecuteScalar().ToString();
+                                }
                             }
                         }
-                    }
-                    if(curr > endDate) // if fd is already matured, but customer does not come to collect it and he came after maturity
-                    {
-                        if(lastPaidDate == startDate)
+                        if(curr > endDate) // if fd is already matured, but customer does not come to collect it and he came after maturity
                         {
-                            txtpayable_intr.Text = txtTotalInterest.Text;
+                            OleDbCommand cmdPaidInterest = new OleDbCommand("select Paid_intr from fd_transection where cert_id = " + txtCertID.Text, conn);
+                            txtPaid_intr.Text = cmdPaidInterest.ExecuteScalar().ToString();
+
+                            //if(curr > endDate)
+                            //{
+                            //    var monthCount2 = curr.Month - startDate.Month;
+                            //    var monthCount1 = lastPaidDate.Month - startDate.Month;
+                            //    if ((monthCount2 - monthCount1) > 0)
+                            //    {
+                            //        txtpayable_intr.Text = ((monthCount2 - monthCount1) * payableForMonth).ToString();
+
+                            //        // to show updated paid Interest
+                            //        OleDbCommand cmdPaidInterest = new OleDbCommand("select Paid_intr from fd_transection where cert_id = " + txtCertID.Text, conn);
+                            //        txtPaid_intr.Text = cmdPaidInterest.ExecuteScalar().ToString();
+                            //    }
+                            //}
                         }
+                    }
+
+                    if (fdType == "Quarterly")
+                    { 
+                        // Code for the quaterly 
+                    }
+
+                    if(fdType == "Half yearly")
+                    {
+                        // code for Half yearly
+                    }
+
+                    if(fdType == "Interest payout on maturity")
+                    {
+                        // code on maturity
                     }
                 }
             }
@@ -349,23 +374,36 @@ namespace Bank_FD_management
                 // Code to Pay the interest to the customer
                 if (btnBreak.Text == "Pay Interest")
                 {
-                    if (!string.IsNullOrEmpty(txtpayable_intr.Text) && !string.IsNullOrEmpty(txtPaid_intr.Text))
-                    {
+                    //if (!string.IsNullOrEmpty(txtpayable_intr.Text) && !string.IsNullOrEmpty(txtPaid_intr.Text))
+                    //{
                         if(DateTime.Now.Date <= dtpMatureDate.Value.Date)
                         {
-                            OleDbCommand cmd = new OleDbCommand("update fd_transection set paid_intr = " + txtPaid_intr.Text + ", paidDate = #" + DateTime.Now.Date + "# where cert_id = " + txtCertID.Text, conn);
-                            cmd.ExecuteNonQuery();
-                            MessageBox.Show("paise tyla dile. aata nanter yee");
+                            var tempPaidIntr = txtPaid_intr.Text;
+                            var tempPaiyIntr = txtpayable_intr.Text;
 
-                            txtPaid_intr.Text = (Convert.ToInt32(txtPaid_intr.Text) + Convert.ToInt32(txtpayable_intr.Text)).ToString() ;
+                            txtPaid_intr.Text = (Convert.ToInt32(txtPaid_intr.Text) + Convert.ToInt32(txtpayable_intr.Text)).ToString();
                             txtpayable_intr.Text = "0";
+
+                            DialogResult res = MessageBox.Show("Do you want to Pay?\n\t Rs." + tempPaiyIntr + "/-", "Confirm", MessageBoxButtons.YesNo);
+                            if (res == DialogResult.Yes)
+                            {
+                                OleDbCommand cmd = new OleDbCommand("update fd_transection set paid_intr = " + txtPaid_intr.Text + ", paidDate = #" + DateTime.Now.Date + "# where cert_id = " + txtCertID.Text, conn);
+                                cmd.ExecuteNonQuery();
+                                MessageBox.Show("paise tyla dile. aata nanter yee");
+                            } 
+                            else
+                            {
+                                txtPaid_intr.Text = tempPaidIntr;
+                                txtpayable_intr.Text = tempPaiyIntr;
+                            }
                         }
                         else
                         {
                             MessageBox.Show("Zal ki aata! date sampali bal, aani kiti interest pahijet");
                         }
-                    }
+                    //}
                 }
+
                 // All the code for to Break the FD
                 else if(btnBreak.Text == "Break")
                 {
