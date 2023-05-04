@@ -369,7 +369,7 @@ namespace Bank_FD_management
                 totalDays = (int)(newDate - startDate).TotalDays;
 
                 //to change the end date
-                dtpEndDate.MaxDate = DateTime.Now.AddDays(totalDays);
+                dtpEndDate.MaxDate = DateTime.Now.AddDays(totalDays+1);
                 dtpEndDate.Value = DateTime.Now.AddDays(totalDays);
 
                 //totalDays = (months * 30) + days;

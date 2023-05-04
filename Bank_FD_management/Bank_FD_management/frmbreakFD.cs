@@ -26,7 +26,6 @@ namespace Bank_FD_management
             if (conn.State == ConnectionState.Closed)
             {
                 conn.Open();
-                MessageBox.Show("Connection succesfull");
             }
         }
 
@@ -45,8 +44,6 @@ namespace Bank_FD_management
             ctrl.Tag = ctrl.BackColor;
             ctrl.BackColor = Color.White;
         }
-
-
 
         //for every control on panel got focus
         private void ctrlOnFocuspnl1()
@@ -177,6 +174,9 @@ namespace Bank_FD_management
         {
             InitializeComponent();
 
+            //Set the connection to db
+            setConnection();
+
             ctrlOnFocuspnl1();
             ctrlOnFocuspnl2();
             ctrlOnFocuspnl3();
@@ -197,7 +197,6 @@ namespace Bank_FD_management
             btnBreak.Text = "Pay Interest";
 
             // fetch data from db
-            setConnection();
             OleDbCommand cmd = new OleDbCommand("select * from fd_transection where cert_id = " + txtCertID.Text, conn);
             OleDbDataReader dr = cmd.ExecuteReader();
 
@@ -263,7 +262,6 @@ namespace Bank_FD_management
            {
                 if (!string.IsNullOrEmpty(txtCertID.Text))
                 {
-                    setConnection();
                     OleDbCommand cmd = new OleDbCommand("select * from FD_master where cert_id = " + txtCertID.Text, conn);
                     OleDbDataReader dr = cmd.ExecuteReader();
 
@@ -359,24 +357,46 @@ namespace Bank_FD_management
 
                         if (fdType == "Monthly")
                         {
-                            var alreadyPaid = (int.Parse(txtTotalInterest.Text) / totalMonths) * countMonth;
-                            int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
-                            txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                            if (DateTime.Now.Date >= dtpStartDate.Value.AddMonths(1).Date)
+                            {
+                                var alreadyPaid = (int.Parse(txtTotalInterest.Text) / totalMonths) * countMonth;
+                                int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
+                                txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                            }
+                            else
+                            {
+                                MessageBox.Show("1 Month is not completed");
+                            }
                         }
-                        else if(fdType == "Quaterly")
+                        else if(fdType == "Quarterly")
                         {
-                            var alreadyPaid = (int.Parse(txtTotalInterest.Text) / 4) * countMonth;
-                            int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
-                            txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                            if(DateTime.Now.Date >= dtpStartDate.Value.AddMonths(4).Date)
+                            {
+                                var alreadyPaid = (int.Parse(txtTotalInterest.Text) / 4) * countMonth;
+                                int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
+                                txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                            } 
+                            else
+                            {
+                                MessageBox.Show("4 Month is not completed");
+                            }
                         }
-                        else if(fdType == "Half Yearly")
+                        else if(fdType == "Half yearly")
                         {
-                            var alreadyPaid = (int.Parse(txtTotalInterest.Text) / 6) * countMonth;
-                            int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
-                            txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                            if(DateTime.Now.Date >= dtpStartDate.Value.AddMonths(6).Date)
+                            {
+                                var alreadyPaid = (int.Parse(txtTotalInterest.Text) / 6) * countMonth;
+                                int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
+                                txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                            }
+                            else
+                            {
+                                MessageBox.Show("6 Months are completed");
+                            }
                         }
-                        else if(fdType == "more than 365 days")
+                        else if(fdType == "Interest payout on maturity")
                         {
+                            // add any condition if it is possible
                             txtWith_amt.Text = txtFinalAmount.Text;
                         }
                     }
@@ -396,9 +416,11 @@ namespace Bank_FD_management
                         MessageBox.Show("Your fd is breaked");
                         // data insertion is remaining
                     }
-                    else
+                    else if (res == DialogResult.No)
                     {
                         // clear the form
+                        txtWith_amt.Text = "0";
+                        txtpen_intr.Text = "0";
                     }
                 }
             }
