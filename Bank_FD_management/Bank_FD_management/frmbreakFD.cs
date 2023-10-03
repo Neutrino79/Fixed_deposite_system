@@ -338,14 +338,81 @@ namespace Bank_FD_management
                         }
                     }
                 }
-                else
+                else if(btnBreak.Text == "Break")
                 {
-                    // code for the break fd
+                    dtpWith_date.MaxDate = DateTime.Now.AddDays(1).Date;
+                    dtpWith_date.Text = DateTime.Now.Date.ToString("dd-MM-yyyy");
+
+                    OleDbCommand cmd = new OleDbCommand("select p_interest from interest_master where duration = '" + txtPeriod.Text + "'", conn);
+                    var penIntrDiff = cmd.ExecuteScalar();
+                    txtpen_intr.Text = penIntrDiff.ToString();
+
+
+                    if(DateTime.Now.Date < dtpMatureDate.Value.Date)
+                    {
+                        OleDbCommand cmdFdType = new OleDbCommand("select Period_intr from fd_master where cert_id = " + txtCertID.Text, conn);
+                        string fdType = Convert.ToString(cmdFdType.ExecuteScalar());
+
+                        var countMonth = (DateTime.Now.Month - dtpStartDate.Value.Month);
+                        var totalMonths = ((dtpMatureDate.Value.Year - dtpStartDate.Value.Year) * 12) + dtpMatureDate.Value.Month - dtpStartDate.Value.Month;
+                        var payableForMonth = (int.Parse(txtTotalInterest.Text) / totalMonths);
+
+                        if (fdType == "Monthly")
+                        {
+                            var alreadyPaid = (int.Parse(txtTotalInterest.Text) / totalMonths) * countMonth;
+                            int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
+                            txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                        }
+                        else if(fdType == "Quaterly")
+                        {
+                            var alreadyPaid = (int.Parse(txtTotalInterest.Text) / 4) * countMonth;
+                            int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
+                            txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                        }
+                        else if(fdType == "Half Yearly")
+                        {
+                            var alreadyPaid = (int.Parse(txtTotalInterest.Text) / 6) * countMonth;
+                            int newAmt = Convert.ToInt32(txtFDAmount.Text) * (Convert.ToInt32(txtinterestRate.Text) - Convert.ToInt32(penIntrDiff)) / 100;
+                            txtWith_amt.Text = (int.Parse(txtFDAmount.Text) + newAmt - alreadyPaid).ToString();
+                        }
+                        else if(fdType == "more than 365 days")
+                        {
+                            txtWith_amt.Text = txtFinalAmount.Text;
+                        }
+                    }
+                    else if(DateTime.Now.Date >= dtpMatureDate.Value.Date)
+                    {
+                        txtWith_amt.Text = txtFinalAmount.Text;
+                    }
+
+                    DialogResult res = MessageBox.Show("Do you want to break the FD?", "Confirm", MessageBoxButtons.YesNo);
+                    if(res == DialogResult.Yes)
+                    {
+                        // update status in tables fd_transection and insert data into break_fd table
+                        OleDbCommand cmdUpdateStatus = new OleDbCommand("update fd_transection set fd_status = 'Break' where cert_id = " + txtCertID.Text, conn);
+                        cmdUpdateStatus.ExecuteNonQuery();
+                        OleDbCommand cmdUpdateStatus1 = new OleDbCommand("update fd_master set status = 'Break' where cert_id = " + txtCertID.Text, conn);
+                        cmdUpdateStatus1.ExecuteNonQuery();
+                        MessageBox.Show("Your fd is breaked");
+                        // data insertion is remaining
+                    }
+                    else
+                    {
+                        // clear the form
+                    }
                 }
             }
             catch(Exception ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void txtCertID_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if(e.KeyChar == (char)Keys.Enter)
+            {
+                btnFetchDetails.PerformClick();
             }
         }
     }

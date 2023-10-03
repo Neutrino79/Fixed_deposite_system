@@ -224,6 +224,7 @@
             this.txtCertID.Name = "txtCertID";
             this.txtCertID.Size = new System.Drawing.Size(178, 29);
             this.txtCertID.TabIndex = 0;
+            this.txtCertID.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtCertID_KeyPress);
             // 
             // lblID
             // 
